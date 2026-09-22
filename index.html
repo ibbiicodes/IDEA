@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Professional Gym Fee Management System — track members, collect fees, and manage defaulters with ease." />
+  <title>Gold Gym — Fee Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Supabase CDN (only used when credentials are set in supabase.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ============================================================
+     SIDEBAR OVERLAY (mobile)
+     ============================================================ -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+  <div class="app-shell">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar-logo">
+        <div class="logo-icon" aria-hidden="true">
+          <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11M6.5 17.5h11M3 10v4M21 10v4M4.5 8.5v7M19.5 8.5v7M8 4.5v15M16 4.5v15"/></svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">Gold Gym</span>
+          <span class="logo-sub">Fee Manager</span>
+        </div>
+      </div>
+
+      <nav class="nav-section">
+        <div class="nav-label">Main Menu</div>
+
+        <div class="nav-item active" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </span>
+          Dashboard
+        </div>
+
+        <div class="nav-item" data-page="members" role="button" tabindex="0" aria-label="Members Directory">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          Members Directory
+        </div>
+
+        <div class="nav-item" data-page="analytics" role="button" tabindex="0" aria-label="Analytics & Reports">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </span>
+          Analytics &amp; Reports
+        </div>
+
+        <div class="nav-label" style="margin-top:16px">Alerts</div>
+
+        <div class="nav-item" id="nav-defaulters" role="button" tabindex="0" aria-label="Defaulters">
+          <span class="nav-icon" style="color:var(--red)">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+          Defaulters
+          <span class="nav-badge" id="nav-badge-defaulters">0</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="theme-btn" id="theme-btn" aria-label="Toggle Theme">
+          <span class="theme-icon" id="theme-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+          <span id="theme-label">Dark Mode</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT ── -->
+    <div class="main-content">
+
+      <!-- TOP HEADER -->
+      <header class="top-header" role="banner">
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="header-greeting">
+          <h1 id="header-greeting">Good Evening, Coach!</h1>
+          <p id="header-date">Loading…</p>
+        </div>
+
+        <div class="header-actions">
+          <div class="search-wrap">
+            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="search" id="header-search" class="search-input" placeholder="Search members by name or phone…"
+              aria-label="Search members" autocomplete="off" />
+            <kbd class="search-kbd">Ctrl K</kbd>
+          </div>
+        </div>
+      </header>
+
+      <!-- ──────────────────────────────────────────────────────
+         PAGE 1: DASHBOARD
+    ────────────────────────────────────────────────────────── -->
+      <main class="page active" id="page-dashboard" role="main">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Overview Dashboard</div>
+            <div class="section-subtitle">Your gym at a glance for this month</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" id="btn-record-payment">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              Record Payment
+            </button>
+            <button class="btn btn-gold" id="btn-add-member">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+              Add New Member
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="metrics-grid" role="list" aria-label="Key metrics">
+          <div class="metric-card" role="listitem">
+            <div class="metric-icon" aria-hidden="true">
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="metric-value" id="stat-active">—</div>
+            <div class="metric-label">Active Members</div>
+            <div class="metric-trend">Total enrolled</div>
+          </div>
+          <div class="metric-card" role="listitem">
+            <div class="metric-icon" aria-hidden="true">
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="metric-value" id="stat-collected">—</div>
+            <div class="metric-label">Collected This Month</div>
+            <div class="metric-trend">Revenue (PKR)</div>
+          </div>
+          <div class="metric-card" role="listitem" id="card-defaulters" onclick="filterToDefaulters()"
+            style="cursor:pointer" title="Click to view all defaulters">
+            <div class="metric-icon" aria-hidden="true" style="color:var(--red)">
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="metric-value" id="stat-unpaid" style="color:var(--red)">—</div>
+            <div class="metric-label">Pending / Defaulters</div>
+            <div class="metric-trend" style="color:var(--red)">Needs attention →</div>
+          </div>
+        </div>
+
+        <!-- Defaulters Table -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Pending Fee — Defaulters</div>
+              <div class="card-subtitle">Active members who haven't paid this month</div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="navigateTo('members')">View All Members →</button>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="Defaulters table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Phone</th>
+                  <th>Monthly Fee</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="defaulters-tbody">
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <div class="empty-title">Loading…</div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      <!-- ──────────────────────────────────────────────────────
+         PAGE 2: MEMBERS DIRECTORY
+    ────────────────────────────────────────────────────────── -->
+      <main class="page" id="page-members" role="main" aria-label="Members Directory">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Members Directory</div>
+            <div class="section-subtitle">Manage all gym member records</div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-outline" id="btn-export-members">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export CSV
+            </button>
+            <button class="btn btn-gold" id="btn-add-member-2">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+              Add New Member
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-tabs" style="margin-bottom:20px" role="tablist" aria-label="Member filters">
+          <button class="filter-tab active" data-filter="all" role="tab">All Members <span id="tab-count-all" class="tab-count-badge tab-count-all">0</span></button>
+          <button class="filter-tab" data-filter="male" role="tab">Male <span id="tab-count-male" class="tab-count-badge tab-count-male">0</span></button>
+          <button class="filter-tab" data-filter="female" role="tab">Female <span id="tab-count-female" class="tab-count-badge tab-count-female">0</span></button>
+          <button class="filter-tab" data-filter="active" role="tab">Active <span id="tab-count-active" class="tab-count-badge tab-count-active">0</span></button>
+          <button class="filter-tab" data-filter="paid" role="tab">Paid <span id="tab-count-paid" class="tab-count-badge tab-count-paid">0</span></button>
+          <button class="filter-tab" data-filter="unpaid" role="tab">Unpaid <span id="tab-count-unpaid" class="tab-count-badge tab-count-unpaid">0</span></button>
+          <button class="filter-tab" data-filter="inactive" role="tab">Inactive <span id="tab-count-inactive" class="tab-count-badge tab-count-inactive">0</span></button>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table aria-label="Members table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Member</th>
+                  <th>Gender</th>
+                  <th>Phone</th>
+                  <th>Joining Date</th>
+                  <th>Monthly Fee</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="members-tbody"></tbody>
+            </table>
+            <div id="members-empty" class="empty-state" style="display:none">
+              <div class="empty-icon">👥</div>
+              <div class="empty-title">No Members Found</div>
+              <div class="empty-sub">Try a different search or filter, or add a new member.</div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- ──────────────────────────────────────────────────────
+         PAGE 3: PAYMENT HISTORY / LEDGER
+    ────────────────────────────────────────────────────────── -->
+      <main class="page" id="page-ledger" role="main" aria-label="Payment History">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Payment History &amp; Ledger</div>
+            <div class="section-subtitle">All fee transactions filtered by period</div>
+          </div>
+          <div class="ledger-filters">
+            <label for="ledger-month" class="sr-only">Filter by month</label>
+            <select class="select-input" id="ledger-month" aria-label="Filter by month">
+              <option value="">All Months</option>
+            </select>
+            <label for="ledger-year" class="sr-only">Filter by year</label>
+            <select class="select-input" id="ledger-year" aria-label="Filter by year">
+              <option value="">All Years</option>
+            </select>
+            <button class="btn btn-outline btn-sm" id="btn-export-ledger">📥 Export CSV</button>
+          </div>
+        </div>
+
+        <!-- Revenue Banner -->
+        <div class="revenue-banner" role="region" aria-label="Revenue summary">
+          <div style="display:flex;align-items:center;gap:20px;">
+            <div class="revenue-banner-icon" aria-hidden="true">💰</div>
+            <div class="revenue-text">
+              <h2 id="revenue-label">Selected Period</h2>
+              <p id="revenue-total">PKR 0</p>
+              <span>Total Revenue Collected</span>
+            </div>
+          </div>
+          <div class="revenue-right">
+            <div class="r-label">Transactions</div>
+            <div class="r-count" id="revenue-txcount">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table aria-label="Payment history table">
+              <thead>
+                <tr>
+                  <th>Txn ID</th>
+                  <th>Member</th>
+                  <th>Amount</th>
+                  <th>Date Paid</th>
+                  <th>Fee Month</th>
+                  <th>Method</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-tbody">
+                <tr>
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <div class="empty-icon">⏳</div>
+                      <div class="empty-title">Loading…</div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      <!-- ──────────────────────────────────────────────────────
+           PAGE 4: FINANCIAL ANALYTICS & REPORTS
+      ────────────────────────────────────────────────────────── -->
+      <main class="page" id="page-analytics" role="main" aria-label="Analytics & Reports">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Financial Analytics &amp; Reports</div>
+            <div class="section-subtitle">Comprehensive monthly revenue insights and collection trends</div>
+          </div>
+          <button class="btn btn-gold" id="btn-export-analytics" onclick="exportLedgerCSV()">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Full Report CSV
+          </button>
+        </div>
+
+        <!-- Financial Metrics Grid -->
+        <div class="metrics-grid" style="margin-bottom:24px">
+          <div class="metric-card">
+            <div class="metric-icon">
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="metric-value" id="analytics-avg-rev">PKR 0</div>
+            <div class="metric-label">Average Monthly Collection</div>
+            <div class="metric-trend">Based on past 6 months</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon" style="color:var(--gold)">
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+            </div>
+            <div class="metric-value" id="analytics-peak-rev">PKR 0</div>
+            <div class="metric-label">Peak Collection</div>
+            <div class="metric-trend" style="color:var(--gold)" id="analytics-peak-month">Highest performing month</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon">
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <div class="metric-value" id="analytics-total-tx">0</div>
+            <div class="metric-label">Total Transactions</div>
+            <div class="metric-trend">Lifetime records</div>
+          </div>
+        </div>
+
+        <!-- Revenue Analytics Chart Card -->
+        <div class="card" style="margin-bottom:24px">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Revenue Collection Trends (Past 6 Months)</div>
+              <div class="card-subtitle">Bar breakdown of total monthly gym fee receipts</div>
+            </div>
+          </div>
+          <div id="analytics-chart-container" style="padding:24px 16px 12px 16px">
+            <!-- SVG bar chart rendered via JS -->
+          </div>
+        </div>
+      </main>
+
+    </div><!-- /main-content -->
+  </div><!-- /app-shell -->
+
+
+  <!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+  <!-- Add / Edit Member Modal -->
+  <div class="modal-overlay" id="member-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Add New Member</h2>
+        <button class="modal-close" data-close-modal="member-modal" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="member-form" novalidate onsubmit="return false;">
+          <div class="form-group">
+            <label class="form-label" for="f-name">Full Name *</label>
+            <input type="text" id="f-name" class="form-input" placeholder="e.g. Ali Hassan" autocomplete="name" />
+            <span class="form-error" id="f-name-err"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-phone">Phone Number *</label>
+            <input type="tel" id="f-phone" class="form-input" placeholder="e.g. 03001234567" autocomplete="tel" />
+            <span class="form-error" id="f-phone-err"></span>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="f-gender">Gender *</label>
+              <select id="f-gender" class="form-input select-input" style="background-image:none">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+              <span class="form-error" id="f-gender-err"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-joining">Joining Date *</label>
+              <input type="date" id="f-joining" class="form-input" />
+              <span class="form-error" id="f-joining-err"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-fee">Monthly Fee (PKR) *</label>
+            <input type="number" id="f-fee" class="form-input" placeholder="e.g. 3000" min="1" step="100" />
+            <span class="form-error" id="f-fee-err"></span>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close-modal="member-modal">Cancel</button>
+        <button class="btn btn-gold" id="btn-save-member">Save Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Payment Modal -->
+  <div class="modal-overlay" id="payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="payment-modal-title">Record Payment</h2>
+        <button class="modal-close" data-close-modal="payment-modal" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label" for="pay-member-select">Select Member *</label>
+          <select id="pay-member-select" class="form-input select-input" style="background-image:none">
+            <option value="">Select a member…</option>
+          </select>
+        </div>
+        <div class="pay-member-info" style="margin-bottom:16px">
+          <div class="avatar" id="pay-avatar" aria-hidden="true">?</div>
+          <div>
+            <div class="pay-info-name" id="pay-name">Member Name</div>
+            <div class="pay-info-fee" id="pay-fee-hint">Agreed Fee: —</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="pay-amount">Amount Paid (PKR) *</label>
+            <input type="number" id="pay-amount" class="form-input" placeholder="e.g. 3000" min="1" step="100" />
+            <span class="form-error" id="pay-amount-err"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pay-method">Payment Method</label>
+            <select id="pay-method" class="form-input select-input" style="background-image:none">
+              <option value="Cash">Cash</option>
+              <option value="Online">Online</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="pay-date">Payment Date *</label>
+            <input type="date" id="pay-date" class="form-input" />
+            <span class="form-error" id="pay-date-err"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pay-month">Fee For Month *</label>
+            <input type="month" id="pay-month" class="form-input" />
+            <span class="form-error" id="pay-month-err"></span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close-modal="payment-modal">Cancel</button>
+        <button class="btn btn-gold" id="btn-save-payment">Confirm Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member Ledger Modal -->
+  <div class="modal-overlay ledger-modal" id="ledger-modal" role="dialog" aria-modal="true"
+    aria-labelledby="ledger-modal-title">
+    <div class="modal" style="max-width:640px">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="ledger-modal-title">Member Payment Ledger</h2>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:2px" id="ledger-modal-name">Member Name</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-outline btn-sm" id="btn-export-single-ledger" title="Export this member's CSV">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button class="modal-close" data-close-modal="ledger-modal" aria-label="Close modal">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+        <div class="ledger-list" id="ledger-modal-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" data-close-modal="ledger-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Member ID Card Modal -->
+  <div class="modal-overlay" id="idcard-modal" role="dialog" aria-modal="true" aria-labelledby="idcard-modal-title">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <h2 class="modal-title" id="idcard-modal-title">Member Pass ID Card</h2>
+        <button class="modal-close" data-close-modal="idcard-modal" aria-label="Close modal">✕</button>
+      </div>
+      <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;padding:20px 16px;">
+        
+        <!-- Flip Card Component -->
+        <div class="idcard-box" id="idcard-box" onclick="toggleIDCardFlip()" title="Click to Flip Card">
+          <div class="idcard-inner" id="idcard-inner">
+            
+            <!-- FRONT SIDE -->
+            <div class="idcard-face idcard-front">
+              <div class="idcard-top">
+                <div class="idcard-logo">Gold Gym</div>
+                <div class="idcard-badge">OFFICIAL MEMBER</div>
+              </div>
+              <div class="idcard-content">
+                <div class="idcard-avatar" id="idcard-avatar">AH</div>
+                <div class="idcard-info">
+                  <div class="idcard-name" id="idcard-name">Ali Hassan</div>
+                  <div class="idcard-sub" id="idcard-phone">03001234567</div>
+                  <div class="idcard-chip-row">
+                    <span class="idcard-pill" id="idcard-gender">Male</span>
+                    <span class="idcard-pill status-pill" id="idcard-status">Active</span>
+                  </div>
+                </div>
+              </div>
+              <div class="idcard-footer">
+                <div>
+                  <span class="idcard-lbl">MEMBER ID</span>
+                  <strong class="idcard-val" id="idcard-id">#MEM-001</strong>
+                </div>
+                <div>
+                  <span class="idcard-lbl">JOINED</span>
+                  <strong class="idcard-val" id="idcard-joining">15-Jan-2025</strong>
+                </div>
+                <div class="idcard-flip-prompt">Tap to flip ↻</div>
+              </div>
+            </div>
+
+            <!-- BACK SIDE -->
+            <div class="idcard-face idcard-back">
+              <div class="idcard-top">
+                <div class="idcard-logo">Gold Gym Rules &amp; Pass</div>
+              </div>
+              <div class="idcard-back-body">
+                <div class="idcard-back-row">
+                  <span>MONTHLY FEE:</span>
+                  <strong id="idcard-back-fee" style="color:var(--gold)">PKR 3,000</strong>
+                </div>
+                <div class="idcard-back-row">
+                  <span>CURRENT MONTH STATUS:</span>
+                  <strong id="idcard-back-status" style="color:var(--green)">Paid</strong>
+                </div>
+                <div class="idcard-qr-box">
+                  <div class="qr-pattern"></div>
+                  <div style="font-size:0.62rem;color:var(--text-muted);margin-top:4px">SCAN TO VERIFY PASS</div>
+                </div>
+                <p class="idcard-notice">This card remains the property of Gold Gym. Non-transferable.</p>
+              </div>
+              <div class="idcard-footer">
+                <div class="idcard-flip-prompt">Tap to flip back ↻</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="justify-content:space-between">
+        <button class="btn btn-outline" onclick="toggleIDCardFlip()">Flip Card</button>
+        <button class="btn btn-gold" onclick="printIDCard()">Print ID Card</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+     CONFIRM DELETE DIALOG
+     ============================================================ -->
+  <div class="confirm-overlay" id="confirm-overlay" role="alertdialog" aria-modal="true"
+    aria-labelledby="confirm-title">
+    <div class="confirm-box">
+      <div class="confirm-icon" aria-hidden="true" style="color:var(--red)">
+        <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      </div>
+      <div class="confirm-title" id="confirm-title">Delete Member?</div>
+      <div class="confirm-msg" id="confirm-msg">This action cannot be undone.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-outline" id="confirm-cancel">Cancel</button>
+        <button class="btn btn-danger" id="confirm-ok" style="padding:10px 24px;font-size:0.88rem">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+     TOAST CONTAINER
+     ============================================================ -->
+  <div id="toast-container" aria-live="polite" aria-label="Notifications"></div>
+
+  <!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+  <script src="supabase.js"></script>
+  <script src="app.js"></script>
+
+</body>
+
+</html>
