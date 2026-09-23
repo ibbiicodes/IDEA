@@ -9,8 +9,27 @@
   <title>Gold Gym — Fee Management System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="styles.css" />
-  <!-- Supabase CDN (only used when credentials are set in supabase.js) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    window.addEventListener('error', function (e) {
+      console.error('GymApp Global Error:', e);
+      var banner = document.getElementById('runtime-error-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'runtime-error-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#fff;padding:12px 20px;font-family:sans-serif;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;justify-content:space-between;align-items:center;';
+        banner.innerHTML = '<span><strong>⚠️ App Notice:</strong> <span id="error-banner-text"></span></span> <button onclick="this.parentElement.remove()" style="background:#fff;color:#b91c1c;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:bold;margin-left:12px;">Dismiss</button>';
+        if (document.body) { document.body.appendChild(banner); }
+        else { document.documentElement.appendChild(banner); }
+      }
+      var textEl = document.getElementById('error-banner-text');
+      if (textEl) {
+        textEl.textContent = (e.message || 'Script issue') + ' (' + (e.filename ? e.filename.split('/').pop() : '') + ':' + (e.lineno || '') + ')';
+      }
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      console.error('GymApp Unhandled Rejection:', e.reason);
+    });
+  </script>
 </head>
 
 <body>
@@ -29,7 +48,10 @@
     <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
       <div class="sidebar-logo">
         <div class="logo-icon" aria-hidden="true">
-          <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11M6.5 17.5h11M3 10v4M21 10v4M4.5 8.5v7M19.5 8.5v7M8 4.5v15M16 4.5v15"/></svg>
+          <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 6.5h11M6.5 17.5h11M3 10v4M21 10v4M4.5 8.5v7M19.5 8.5v7M8 4.5v15M16 4.5v15" />
+          </svg>
         </div>
         <div class="logo-text">
           <span class="logo-title">Gold Gym</span>
@@ -42,21 +64,47 @@
 
         <div class="nav-item active" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard">
           <span class="nav-icon">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+            </svg>
           </span>
           Dashboard
         </div>
 
         <div class="nav-item" data-page="members" role="button" tabindex="0" aria-label="Members Directory">
           <span class="nav-icon">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
           </span>
           Members Directory
         </div>
 
+        <div class="nav-item" data-page="ledger" role="button" tabindex="0" aria-label="Payment Ledger">
+          <span class="nav-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+              <line x1="1" y1="10" x2="23" y2="10" />
+            </svg>
+          </span>
+          Payment Ledger
+        </div>
+
         <div class="nav-item" data-page="analytics" role="button" tabindex="0" aria-label="Analytics & Reports">
           <span class="nav-icon">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
           </span>
           Analytics &amp; Reports
         </div>
@@ -65,19 +113,33 @@
 
         <div class="nav-item" id="nav-defaulters" role="button" tabindex="0" aria-label="Defaulters">
           <span class="nav-icon" style="color:var(--red)">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
           </span>
           Defaulters
           <span class="nav-badge" id="nav-badge-defaulters">0</span>
         </div>
       </nav>
 
-      <div class="sidebar-footer">
+      <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:8px">
         <button class="theme-btn" id="theme-btn" aria-label="Toggle Theme">
           <span class="theme-icon" id="theme-icon">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
           </span>
           <span id="theme-label">Dark Mode</span>
+        </button>
+        <button class="theme-btn" onclick="resetGymData()" aria-label="Reset Demo Data"
+          style="background:transparent;border-color:var(--border);font-size:0.75rem;padding:6px 12px;opacity:0.8"
+          title="Restore default sample records">
+          <span class="theme-icon">🔄</span>
+          <span>Reset Sample Data</span>
         </button>
       </div>
     </aside>
@@ -88,7 +150,12 @@
       <!-- TOP HEADER -->
       <header class="top-header" role="banner">
         <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
-          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
         </button>
 
         <div class="header-greeting">
@@ -98,7 +165,8 @@
 
         <div class="header-actions">
           <div class="search-wrap">
-            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -120,11 +188,17 @@
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="btn btn-outline btn-sm" id="btn-record-payment">
-              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
+              </svg>
               Record Payment
             </button>
             <button class="btn btn-gold" id="btn-add-member">
-              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="6" y1="12" x2="18" y2="12" />
+              </svg>
               Add New Member
             </button>
           </div>
@@ -134,7 +208,12 @@
         <div class="metrics-grid" role="list" aria-label="Key metrics">
           <div class="metric-card" role="listitem">
             <div class="metric-icon" aria-hidden="true">
-              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </div>
             <div class="metric-value" id="stat-active">—</div>
             <div class="metric-label">Active Members</div>
@@ -142,7 +221,10 @@
           </div>
           <div class="metric-card" role="listitem">
             <div class="metric-icon" aria-hidden="true">
-              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
             </div>
             <div class="metric-value" id="stat-collected">—</div>
             <div class="metric-label">Collected This Month</div>
@@ -151,7 +233,11 @@
           <div class="metric-card" role="listitem" id="card-defaulters" onclick="filterToDefaulters()"
             style="cursor:pointer" title="Click to view all defaulters">
             <div class="metric-icon" aria-hidden="true" style="color:var(--red)">
-              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
             </div>
             <div class="metric-value" id="stat-unpaid" style="color:var(--red)">—</div>
             <div class="metric-label">Pending / Defaulters</div>
@@ -204,24 +290,51 @@
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-outline" id="btn-export-members">
-              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
               Export CSV
             </button>
             <button class="btn btn-gold" id="btn-add-member-2">
-              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="6" y1="12" x2="18" y2="12" />
+              </svg>
               Add New Member
             </button>
           </div>
         </div>
 
+        <div
+          style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap">
+          <div class="search-wrap" style="width:100%;max-width:320px;">
+            <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="search" id="members-search" class="search-input" placeholder="Search members by name or phone…"
+              aria-label="Search members" autocomplete="off" />
+          </div>
+        </div>
+
         <div class="filter-tabs" style="margin-bottom:20px" role="tablist" aria-label="Member filters">
-          <button class="filter-tab active" data-filter="all" role="tab">All Members <span id="tab-count-all" class="tab-count-badge tab-count-all">0</span></button>
-          <button class="filter-tab" data-filter="male" role="tab">Male <span id="tab-count-male" class="tab-count-badge tab-count-male">0</span></button>
-          <button class="filter-tab" data-filter="female" role="tab">Female <span id="tab-count-female" class="tab-count-badge tab-count-female">0</span></button>
-          <button class="filter-tab" data-filter="active" role="tab">Active <span id="tab-count-active" class="tab-count-badge tab-count-active">0</span></button>
-          <button class="filter-tab" data-filter="paid" role="tab">Paid <span id="tab-count-paid" class="tab-count-badge tab-count-paid">0</span></button>
-          <button class="filter-tab" data-filter="unpaid" role="tab">Unpaid <span id="tab-count-unpaid" class="tab-count-badge tab-count-unpaid">0</span></button>
-          <button class="filter-tab" data-filter="inactive" role="tab">Inactive <span id="tab-count-inactive" class="tab-count-badge tab-count-inactive">0</span></button>
+          <button class="filter-tab active" data-filter="all" role="tab">All Members <span id="tab-count-all"
+              class="tab-count-badge tab-count-all">0</span></button>
+          <button class="filter-tab" data-filter="male" role="tab">Male <span id="tab-count-male"
+              class="tab-count-badge tab-count-male">0</span></button>
+          <button class="filter-tab" data-filter="female" role="tab">Female <span id="tab-count-female"
+              class="tab-count-badge tab-count-female">0</span></button>
+          <button class="filter-tab" data-filter="active" role="tab">Active <span id="tab-count-active"
+              class="tab-count-badge tab-count-active">0</span></button>
+          <button class="filter-tab" data-filter="paid" role="tab">Paid <span id="tab-count-paid"
+              class="tab-count-badge tab-count-paid">0</span></button>
+          <button class="filter-tab" data-filter="unpaid" role="tab">Unpaid <span id="tab-count-unpaid"
+              class="tab-count-badge tab-count-unpaid">0</span></button>
+          <button class="filter-tab" data-filter="inactive" role="tab">Inactive <span id="tab-count-inactive"
+              class="tab-count-badge tab-count-inactive">0</span></button>
         </div>
 
         <div class="card">
@@ -326,7 +439,11 @@
             <div class="section-subtitle">Comprehensive monthly revenue insights and collection trends</div>
           </div>
           <button class="btn btn-gold" id="btn-export-analytics" onclick="exportLedgerCSV()">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
             Download Full Report CSV
           </button>
         </div>
@@ -335,7 +452,10 @@
         <div class="metrics-grid" style="margin-bottom:24px">
           <div class="metric-card">
             <div class="metric-icon">
-              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
             </div>
             <div class="metric-value" id="analytics-avg-rev">PKR 0</div>
             <div class="metric-label">Average Monthly Collection</div>
@@ -343,7 +463,14 @@
           </div>
           <div class="metric-card">
             <div class="metric-icon" style="color:var(--gold)">
-              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2z" />
+              </svg>
             </div>
             <div class="metric-value" id="analytics-peak-rev">PKR 0</div>
             <div class="metric-label">Peak Collection</div>
@@ -351,7 +478,10 @@
           </div>
           <div class="metric-card">
             <div class="metric-icon">
-              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
             </div>
             <div class="metric-value" id="analytics-total-tx">0</div>
             <div class="metric-label">Total Transactions</div>
@@ -495,7 +625,11 @@
         </div>
         <div style="display:flex;align-items:center;gap:10px">
           <button class="btn btn-outline btn-sm" id="btn-export-single-ledger" title="Export this member's CSV">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
             Export CSV
           </button>
           <button class="modal-close" data-close-modal="ledger-modal" aria-label="Close modal">✕</button>
@@ -518,11 +652,11 @@
         <button class="modal-close" data-close-modal="idcard-modal" aria-label="Close modal">✕</button>
       </div>
       <div class="modal-body" style="display:flex;flex-direction:column;align-items:center;padding:20px 16px;">
-        
+
         <!-- Flip Card Component -->
         <div class="idcard-box" id="idcard-box" onclick="toggleIDCardFlip()" title="Click to Flip Card">
           <div class="idcard-inner" id="idcard-inner">
-            
+
             <!-- FRONT SIDE -->
             <div class="idcard-face idcard-front">
               <div class="idcard-top">
@@ -596,7 +730,10 @@
     aria-labelledby="confirm-title">
     <div class="confirm-box">
       <div class="confirm-icon" aria-hidden="true" style="color:var(--red)">
-        <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
       </div>
       <div class="confirm-title" id="confirm-title">Delete Member?</div>
       <div class="confirm-msg" id="confirm-msg">This action cannot be undone.</div>
