@@ -685,11 +685,57 @@ tbody td {
   .sidebar-overlay.open { opacity:1; pointer-events:all; }
   .main-content { margin-left:0; width:100%; }
   .hamburger { display:flex; align-items:center; }
-  .metrics-grid { grid-template-columns:1fr; gap:14px; }
+  .metrics-grid { grid-template-columns:repeat(3, 1fr); gap:14px; }
   .form-row { grid-template-columns:1fr; }
   .search-input { width:180px; }
   .section-header { flex-direction:column; align-items:flex-start; gap:14px; }
   .modal { width:95% !important; margin:10px auto; max-height:88vh; }
+}
+
+/* ── Mobile Devices (under 768px): Compact, neat metric cards ── */
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .metric-card {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+  }
+  .metric-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .metric-card:active {
+    transform: scale(0.99);
+  }
+  .metric-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+  }
+  .metric-icon .svg-icon,
+  .metric-icon svg,
+  .metric-icon .svg-icon-lg {
+    width: 18px;
+    height: 18px;
+  }
+  .metric-value {
+    font-size: 1.35rem;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+  }
+  .metric-label {
+    font-size: 0.72rem;
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+  }
+  .metric-trend {
+    font-size: 0.68rem;
+    margin-top: 4px;
+  }
 }
 
 @media (max-width:600px) {
@@ -699,7 +745,6 @@ tbody td {
   .search-wrap { width:100%; }
   .search-input { width:100% !important; }
   .section-title { font-size:1.2rem; }
-  .metric-value { font-size:1.6rem; }
   .revenue-banner { flex-direction:column; padding:16px; align-items:flex-start; }
   .revenue-right { text-align:left; margin-top:10px; }
   .table-wrap table { min-width:640px; }
@@ -710,6 +755,39 @@ tbody td {
   .modal-body { padding:16px; }
   .modal-header { padding:16px; }
   .filter-tab { padding:6px 12px; font-size:0.75rem; white-space:nowrap; }
+}
+
+@media (max-width: 480px) {
+  .metrics-grid {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    padding: 12px 14px;
+  }
+  .metric-icon {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 6px;
+    font-size: 1rem;
+  }
+  .metric-icon .svg-icon,
+  .metric-icon svg,
+  .metric-icon .svg-icon-lg {
+    width: 16px;
+    height: 16px;
+  }
+  .metric-value {
+    font-size: 1.25rem;
+  }
+  .metric-label {
+    font-size: 0.68rem;
+    margin-top: 2px;
+  }
+  .metric-trend {
+    font-size: 0.64rem;
+    margin-top: 3px;
+  }
 }
 
 /* ── Animations ── */
