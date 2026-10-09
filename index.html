@@ -181,15 +181,6 @@
       </nav>
 
       <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:8px">
-        <button class="theme-btn" id="theme-btn" aria-label="Toggle Theme">
-          <span class="theme-icon" id="theme-icon">
-            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          </span>
-          <span id="theme-label">Dark Mode</span>
-        </button>
         <button class="theme-btn" id="btn-lock-dashboard" onclick="showSplashScreen()" aria-label="Lock Dashboard"
           style="background:transparent;border-color:var(--border);font-size:0.75rem;padding:6px 12px;opacity:0.85"
           title="Lock Dashboard">
@@ -231,6 +222,11 @@
               aria-label="Search members" autocomplete="off" />
             <kbd class="search-kbd">Ctrl K</kbd>
           </div>
+
+          <!-- Theme Toggle (Header) -->
+          <button class="header-theme-btn" id="theme-btn" aria-label="Toggle theme">
+            <i class="fa-solid fa-moon" id="theme-icon"></i>
+          </button>
         </div>
       </header>
 
