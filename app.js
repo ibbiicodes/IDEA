@@ -50,6 +50,9 @@ const State = {
   members:        [],
   payments:       [],
   currentPage:    'dashboard',
+  filterGender:   'all',
+  filterFee:      'all',
+  filterStatus:   'all',
   membersFilter:  'all',
   membersSearch:  '',
   ledgerMonth:    '',
@@ -74,6 +77,7 @@ function init() {
   try { initModals(); } catch (e) { console.warn('initModals error:', e); }
   try { initMemberActions(); } catch (e) { console.warn('initMemberActions error:', e); }
   try { updateDateDisplay(); } catch (e) { console.warn('updateDateDisplay error:', e); }
+  try { initSplashScreen(); } catch (e) { console.warn('initSplashScreen error:', e); }
 
   loadData()
     .then(() => {
@@ -312,7 +316,7 @@ function renderDefaultersTable() {
     const isFemale = m.gender === 'female';
     return `
     <tr>
-      <td>
+      <td class="sticky-col">
         <div class="member-cell">
           <div class="avatar ${isFemale ? 'avatar-female' : ''}">${getInitials(m.full_name)}</div>
           <div>
@@ -345,44 +349,145 @@ function renderDefaultersTable() {
 ───────────────────────────────────────────────────────────── */
 function filterToDefaulters() {
   navigateTo('members');
+  State.filterFee = 'unpaid';
+  State.filterStatus = 'active';
+  State.filterGender = 'all';
+  State.membersSearch = '';
   State.membersFilter = 'unpaid';
-  document.querySelectorAll('.filter-tab[data-filter]').forEach(t => {
-    t.classList.toggle('active', t.dataset.filter === 'unpaid');
-  });
+
+  const fg = document.getElementById('filter-gender');
+  if (fg) fg.value = 'all';
+  const ff = document.getElementById('filter-fee-status');
+  if (ff) ff.value = 'unpaid';
+  const fs = document.getElementById('filter-member-status');
+  if (fs) fs.value = 'active';
+  const ms = document.getElementById('members-search');
+  if (ms) ms.value = '';
+  const hs = document.getElementById('header-search');
+  if (hs) hs.value = '';
+
+  renderMembers();
+}
+
+function clearSpecificFilter(type) {
+  if (type === 'gender') {
+    State.filterGender = 'all';
+    const el = document.getElementById('filter-gender');
+    if (el) el.value = 'all';
+  } else if (type === 'fee') {
+    State.filterFee = 'all';
+    const el = document.getElementById('filter-fee-status');
+    if (el) el.value = 'all';
+  } else if (type === 'status') {
+    State.filterStatus = 'all';
+    const el = document.getElementById('filter-member-status');
+    if (el) el.value = 'all';
+  } else if (type === 'search') {
+    State.membersSearch = '';
+    const ms = document.getElementById('members-search');
+    if (ms) ms.value = '';
+    const hs = document.getElementById('header-search');
+    if (hs) hs.value = '';
+  }
+  renderMembers();
+}
+
+function resetFilters() {
+  State.filterGender = 'all';
+  State.filterFee = 'all';
+  State.filterStatus = 'all';
+  State.membersSearch = '';
+  State.membersFilter = 'all';
+
+  const fg = document.getElementById('filter-gender');
+  if (fg) fg.value = 'all';
+  const ff = document.getElementById('filter-fee-status');
+  if (ff) ff.value = 'all';
+  const fs = document.getElementById('filter-member-status');
+  if (fs) fs.value = 'all';
+  const ms = document.getElementById('members-search');
+  if (ms) ms.value = '';
+  const hs = document.getElementById('header-search');
+  if (hs) hs.value = '';
+
   renderMembers();
 }
 
 function renderMembers() {
   const search = (State.membersSearch || '').toLowerCase().trim();
-  const filter = State.membersFilter || 'all';
+  const filterGender = State.filterGender || 'all';
+  const filterFee = State.filterFee || 'all';
+  const filterStatus = State.filterStatus || 'all';
 
   let list = State.members.filter(m => {
     if (!m) return false;
-    const nameStr  = (m.full_name || '').toLowerCase();
+
+    // 1. Search filter: full_name or phone
+    const nameStr = (m.full_name || '').toLowerCase();
     const phoneStr = (m.phone || '');
     const matchSearch = !search || nameStr.includes(search) || phoneStr.includes(search);
-    let matchFilter = true;
-    if (filter === 'male')     matchFilter = (m.gender || 'male') === 'male';
-    if (filter === 'female')   matchFilter = m.gender === 'female';
-    if (filter === 'paid')     matchFilter = m.status === 'active' && isPaidThisMonth(m.id);
-    if (filter === 'unpaid')   matchFilter = m.status === 'active' && !isPaidThisMonth(m.id);
-    if (filter === 'inactive') matchFilter = m.status === 'inactive';
-    if (filter === 'active')   matchFilter = m.status === 'active';
-    return matchSearch && matchFilter;
+    if (!matchSearch) return false;
+
+    // 2. Gender filter: all, male, female
+    if (filterGender === 'male') {
+      if ((m.gender || 'male') !== 'male') return false;
+    } else if (filterGender === 'female') {
+      if (m.gender !== 'female') return false;
+    }
+
+    // 3. Fee status filter: all, paid, unpaid
+    const paid = isPaidThisMonth(m.id);
+    if (filterFee === 'paid') {
+      if (!paid) return false;
+    } else if (filterFee === 'unpaid') {
+      if (paid) return false;
+    }
+
+    // 4. Member status filter: all, active, inactive
+    if (filterStatus === 'active') {
+      if (m.status !== 'active') return false;
+    } else if (filterStatus === 'inactive') {
+      if (m.status !== 'inactive') return false;
+    }
+
+    return true;
   });
 
   const tbody = document.getElementById('members-tbody');
   const emptyState = document.getElementById('members-empty');
   if (!tbody) return;
 
-  // Count badges
-  if (document.getElementById('tab-count-all'))      document.getElementById('tab-count-all').textContent      = State.members.length;
-  if (document.getElementById('tab-count-male'))     document.getElementById('tab-count-male').textContent     = State.members.filter(m=>(m?.gender||'male')==='male').length;
-  if (document.getElementById('tab-count-female'))   document.getElementById('tab-count-female').textContent   = State.members.filter(m=>m?.gender==='female').length;
-  if (document.getElementById('tab-count-active'))   document.getElementById('tab-count-active').textContent   = getActiveMembers().length;
-  if (document.getElementById('tab-count-paid'))     document.getElementById('tab-count-paid').textContent     = getActiveMembers().filter(m=>isPaidThisMonth(m.id)).length;
-  if (document.getElementById('tab-count-unpaid'))   document.getElementById('tab-count-unpaid').textContent   = getUnpaidDefaulters().length;
-  if (document.getElementById('tab-count-inactive')) document.getElementById('tab-count-inactive').textContent = State.members.filter(m=>m?.status==='inactive').length;
+  // Filter count feedback
+  const filteredCountEl = document.getElementById('members-filtered-count');
+  if (filteredCountEl) filteredCountEl.textContent = list.length;
+  const totalCountEl = document.getElementById('members-total-count');
+  if (totalCountEl) totalCountEl.textContent = State.members.length;
+
+  // Reset button visibility
+  const isFiltered = filterGender !== 'all' || filterFee !== 'all' || filterStatus !== 'all' || !!search;
+  const btnReset = document.getElementById('btn-reset-filters');
+  if (btnReset) {
+    btnReset.style.display = isFiltered ? 'inline-flex' : 'none';
+  }
+
+  // Active filter chips
+  const chipsContainer = document.getElementById('active-filter-chips');
+  if (chipsContainer) {
+    let chipsHtml = '';
+    if (filterGender !== 'all') {
+      chipsHtml += `<span class="filter-chip" onclick="clearSpecificFilter('gender')">Gender: ${filterGender === 'male' ? 'Male' : 'Female'} <span class="filter-chip-remove">×</span></span>`;
+    }
+    if (filterFee !== 'all') {
+      chipsHtml += `<span class="filter-chip" onclick="clearSpecificFilter('fee')">Fee: ${filterFee === 'paid' ? 'Paid' : 'Unpaid'} <span class="filter-chip-remove">×</span></span>`;
+    }
+    if (filterStatus !== 'all') {
+      chipsHtml += `<span class="filter-chip" onclick="clearSpecificFilter('status')">Status: ${filterStatus === 'active' ? 'Active' : 'Inactive'} <span class="filter-chip-remove">×</span></span>`;
+    }
+    if (search) {
+      chipsHtml += `<span class="filter-chip" onclick="clearSpecificFilter('search')">Search: "${esc(search)}" <span class="filter-chip-remove">×</span></span>`;
+    }
+    chipsContainer.innerHTML = chipsHtml;
+  }
 
   if (list.length === 0) {
     tbody.innerHTML = '';
@@ -395,8 +500,8 @@ function renderMembers() {
       const isFemale = m.gender === 'female';
       return `
         <tr>
-          <td style="color:var(--text-muted);font-size:0.75rem;font-weight:700">#${(i+1).toString().padStart(3,'0')}</td>
-          <td>
+          <td class="col-num" style="color:var(--text-muted);font-size:0.75rem;font-weight:700">#${(i+1).toString().padStart(3,'0')}</td>
+          <td class="col-member sticky-col">
             <div class="member-cell">
               <div class="avatar ${isFemale ? 'avatar-female' : ''}">${getInitials(m.full_name)}</div>
               <div>
@@ -507,7 +612,7 @@ function renderLedger() {
         <td>${feeMonthStr}</td>
         <td>
           <span class="badge ${p.payment_method === 'Cash' ? 'badge-gold' : 'badge-paid'}">
-            ${p.payment_method === 'Cash' ? '💵' : '📱'} ${esc(p.payment_method || 'Cash')}
+            ${esc(p.payment_method || 'Cash')}
           </span>
         </td>
       </tr>
@@ -521,7 +626,7 @@ function renderLedger() {
 function openAddModal() {
   State.editingMemberId = null;
   const titleEl = document.getElementById('modal-title');
-  if (titleEl) titleEl.textContent = '➕ Add New Member';
+  if (titleEl) titleEl.textContent = 'Add New Member';
   const form = document.getElementById('member-form');
   if (form) form.reset();
   clearFormErrors();
@@ -537,7 +642,7 @@ function openEditModal(id) {
   if (!m) return;
   State.editingMemberId = id;
   const titleEl = document.getElementById('modal-title');
-  if (titleEl) titleEl.textContent = '✏️ Edit Member';
+  if (titleEl) titleEl.textContent = 'Edit Member';
   document.getElementById('f-name').value    = m.full_name || '';
   document.getElementById('f-phone').value   = m.phone || '';
   const genderEl = document.getElementById('f-gender');
@@ -691,7 +796,7 @@ function sendWhatsAppReceipt(memberName, amount, month, phone) {
   const cleanPhone = (phone || '').replace(/\D/g,'');
   const intlPhone  = cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone;
   const msg = encodeURIComponent(
-    `Salam ${memberName}, thank you! We have received your gym fee of PKR ${amount.toLocaleString()} for ${month}. - Gold Gym 🏋️`
+    `Salam ${memberName}, thank you! We have received your gym fee of PKR ${amount.toLocaleString()} for ${month}. - Gold Gym`
   );
   window.open(`https://wa.me/${intlPhone}?text=${msg}`, '_blank');
 }
@@ -913,7 +1018,7 @@ function sendWhatsApp(memberId) {
   const phone = (m.phone || '').replace(/\D/g,'');
   const intlPhone = phone.startsWith('0') ? '92' + phone.slice(1) : phone;
   const msg = encodeURIComponent(
-    `Salam ${m.full_name}, your gym fee for this month is pending. Kindly clear it at your earliest. - Gold Gym 🏋️`
+    `Salam ${m.full_name}, your gym fee for this month is pending. Kindly clear it at your earliest. - Gold Gym`
   );
   window.open(`https://wa.me/${intlPhone}?text=${msg}`, '_blank');
 }
@@ -1028,15 +1133,32 @@ function initSearch() {
     }
   });
 
-  // Filter tabs
-  document.querySelectorAll('.filter-tab[data-filter]').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.filter-tab[data-filter]').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      State.membersFilter = tab.dataset.filter;
+  // Modern Dropdown filters
+  const fg = document.getElementById('filter-gender');
+  if (fg) {
+    fg.addEventListener('change', e => {
+      State.filterGender = e.target.value;
       renderMembers();
     });
-  });
+  }
+  const ff = document.getElementById('filter-fee-status');
+  if (ff) {
+    ff.addEventListener('change', e => {
+      State.filterFee = e.target.value;
+      renderMembers();
+    });
+  }
+  const fs = document.getElementById('filter-member-status');
+  if (fs) {
+    fs.addEventListener('change', e => {
+      State.filterStatus = e.target.value;
+      renderMembers();
+    });
+  }
+  const btnReset = document.getElementById('btn-reset-filters');
+  if (btnReset) {
+    btnReset.addEventListener('click', resetFilters);
+  }
 
   // Ledger filters
   const ly = document.getElementById('ledger-year');
@@ -1234,7 +1356,7 @@ function setBtnLoading(btn, loading) {
   if (!btn) return;
   btn.disabled = loading;
   btn._origText = btn._origText || btn.innerHTML;
-  btn.innerHTML = loading ? '<span style="opacity:0.7">⏳ Saving…</span>' : btn._origText;
+  btn.innerHTML = loading ? '<span style="opacity:0.7">Saving…</span>' : btn._origText;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1243,10 +1365,14 @@ function setBtnLoading(btn, loading) {
 function showToast(type, title, msg, actionHtml = '') {
   const container = document.getElementById('toast-container');
   if (!container) return;
-  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  const icons = {
+    success: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--green);width:16px;height:16px;"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    error: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--red);width:16px;height:16px;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+    info: '<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gold);width:16px;height:16px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
+  };
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span class="toast-icon">${icons[type]||'🔔'}</span><div class="toast-text"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div>${actionHtml ? `<div style="margin-top:4px">${actionHtml}</div>` : ''}</div>`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type]||''}</span><div class="toast-text"><div class="toast-title">${title}</div><div class="toast-msg">${msg}</div>${actionHtml ? `<div style="margin-top:4px">${actionHtml}</div>` : ''}</div>`;
   container.appendChild(toast);
   setTimeout(() => {
     toast.classList.add('removing');
@@ -1300,8 +1426,181 @@ function updateDateDisplay() {
   const hour  = now.getHours();
   if (greet) {
     let g = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
-    greet.textContent = `${g}, Coach! 💪`;
+    greet.textContent = `${g}, Coach!`;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CINEMATIC INTRO / SPLASH LANDING SCREEN (iOS Swipe Up)
+───────────────────────────────────────────────────────────── */
+let splashUnlocked = false;
+
+function unlockSplash() {
+  const splash = document.getElementById('splash-screen');
+  if (!splash || splashUnlocked) return;
+  splashUnlocked = true;
+
+  // Exit animation per specs: transform: translateY(-100%); transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  splash.style.transition = 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)';
+  splash.style.transform = 'translateY(-100%)';
+  document.body.classList.remove('splash-active');
+
+  const onTransitionEnd = () => {
+    splash.style.display = 'none';
+    splash.style.pointerEvents = 'none';
+    splash.removeEventListener('transitionend', onTransitionEnd);
+  };
+
+  splash.addEventListener('transitionend', onTransitionEnd);
+  setTimeout(onTransitionEnd, 800); // Safety fallback
+}
+
+function showSplashScreen() {
+  const splash = document.getElementById('splash-screen');
+  if (!splash) return;
+  splashUnlocked = false;
+  document.body.classList.add('splash-active');
+  splash.style.display = 'flex';
+  splash.style.pointerEvents = 'all';
+  // Force synchronous reflow to register starting point
+  void splash.offsetWidth;
+  splash.style.transition = 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)';
+  splash.style.transform = 'translateY(0)';
+}
+
+function initSplashScreen() {
+  const splash = document.getElementById('splash-screen');
+  if (!splash) return;
+
+  const swipeArea = document.getElementById('splash-swipe-area');
+
+  // Mark body active initially
+  document.body.classList.add('splash-active');
+  splash.style.display = 'flex';
+  splash.style.pointerEvents = 'all';
+  splash.style.transform = 'translateY(0)';
+  splashUnlocked = false;
+
+  let startY = 0;
+  let startX = 0;
+  let currentY = 0;
+  let isDragging = false;
+  let startTime = 0;
+
+  function handleStart(clientX, clientY) {
+    if (splashUnlocked) return;
+    isDragging = true;
+    startY = clientY;
+    startX = clientX;
+    currentY = clientY;
+    startTime = Date.now();
+    splash.style.transition = 'none';
+  }
+
+  function handleMove(clientX, clientY, e) {
+    if (!isDragging || splashUnlocked) return;
+    currentY = clientY;
+    const deltaY = currentY - startY;
+    const deltaX = clientX - startX;
+
+    // Prevent horizontal page sway or pull-to-refresh while swiping
+    if (Math.abs(deltaY) > Math.abs(deltaX) && e && e.cancelable) {
+      e.preventDefault();
+    }
+
+    // Follow finger/cursor upward
+    if (deltaY < 0) {
+      splash.style.transform = `translateY(${deltaY}px)`;
+    } else {
+      splash.style.transform = 'translateY(0)';
+    }
+  }
+
+  function handleEnd() {
+    if (!isDragging || splashUnlocked) return;
+    isDragging = false;
+
+    const movedUp = startY - currentY;
+    const elapsed = Date.now() - startTime;
+    const velocity = movedUp / Math.max(elapsed, 1);
+
+    // At least 50px vertical swipe up or fast flick
+    if (movedUp >= 50 || (movedUp >= 25 && velocity > 0.35)) {
+      unlockSplash();
+    } else {
+      // Snap back smoothly
+      splash.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+      splash.style.transform = 'translateY(0)';
+    }
+  }
+
+  // Mobile Touch Events
+  splash.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches[0]) {
+      handleStart(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: false });
+
+  splash.addEventListener('touchmove', (e) => {
+    if (e.touches && e.touches[0]) {
+      handleMove(e.touches[0].clientX, e.touches[0].clientY, e);
+    }
+  }, { passive: false });
+
+  splash.addEventListener('touchend', () => {
+    handleEnd();
+  }, { passive: true });
+
+  splash.addEventListener('touchcancel', () => {
+    handleEnd();
+  }, { passive: true });
+
+  // Desktop Mouse Drag Fallback
+  splash.addEventListener('mousedown', (e) => {
+    if (e.button === 0) {
+      handleStart(e.clientX, e.clientY);
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      handleMove(e.clientX, e.clientY, e);
+    }
+  });
+
+  window.addEventListener('mouseup', (e) => {
+    if (isDragging) {
+      handleEnd();
+    }
+  });
+
+  // Desktop Mouse Wheel Fallback (scroll down or up triggers slide up)
+  splash.addEventListener('wheel', (e) => {
+    if (splashUnlocked) return;
+    if (e.deltaY > 15 || e.deltaY < -15) {
+      unlockSplash();
+    }
+  }, { passive: true });
+
+  // Click on bottom handle / swipe prompt area fallback
+  if (swipeArea) {
+    swipeArea.addEventListener('click', (e) => {
+      if (splashUnlocked) return;
+      const movedDistance = Math.abs(startY - currentY);
+      if (movedDistance < 10) {
+        unlockSplash();
+      }
+    });
+  }
+
+  // Keyboard accessibility
+  window.addEventListener('keydown', (e) => {
+    if (splashUnlocked) return;
+    if (['Enter', ' ', 'ArrowUp', 'ArrowDown', 'PageDown', 'Escape'].includes(e.key)) {
+      e.preventDefault();
+      unlockSplash();
+    }
+  });
 }
 
 // Global exposure for onclick attributes & console access
@@ -1318,9 +1617,14 @@ if (typeof window !== 'undefined') {
   window.exportLedgerCSV  = exportLedgerCSV;
   window.sendWhatsAppReceipt = sendWhatsAppReceipt;
   window.filterToDefaulters = filterToDefaulters;
+  window.resetFilters       = resetFilters;
+  window.clearSpecificFilter = clearSpecificFilter;
   window.exportSingleMemberCSV = exportSingleMemberCSV;
   window.openIDCardModal  = openIDCardModal;
   window.toggleIDCardFlip = toggleIDCardFlip;
   window.printIDCard      = printIDCard;
   window.renderAll        = renderAll;
+  window.initSplashScreen = initSplashScreen;
+  window.unlockSplash     = unlockSplash;
+  window.showSplashScreen = showSplashScreen;
 }

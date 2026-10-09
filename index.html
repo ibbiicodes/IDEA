@@ -8,6 +8,7 @@
     content="Professional Gym Fee Management System — track members, collect fees, and manage defaulters with ease." />
   <title>Gold Gym — Fee Management System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="styles.css" />
   <script>
     window.addEventListener('error', function (e) {
@@ -17,7 +18,7 @@
         banner = document.createElement('div');
         banner.id = 'runtime-error-banner';
         banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#fff;padding:12px 20px;font-family:sans-serif;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);display:flex;justify-content:space-between;align-items:center;';
-        banner.innerHTML = '<span><strong>⚠️ App Notice:</strong> <span id="error-banner-text"></span></span> <button onclick="this.parentElement.remove()" style="background:#fff;color:#b91c1c;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:bold;margin-left:12px;">Dismiss</button>';
+        banner.innerHTML = '<span><svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><strong>App Notice:</strong> <span id="error-banner-text"></span></span> <button onclick="this.parentElement.remove()" style="background:#fff;color:#b91c1c;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-weight:bold;margin-left:12px;">Dismiss</button>';
         if (document.body) { document.body.appendChild(banner); }
         else { document.documentElement.appendChild(banner); }
       }
@@ -33,6 +34,60 @@
 </head>
 
 <body>
+
+  <!-- ============================================================
+     CINEMATIC INTRO / SPLASH LANDING SCREEN (iOS Lock Screen Swipe Up)
+     ============================================================ -->
+  <div class="splash-screen" id="splash-screen" role="dialog" aria-modal="true" aria-label="Welcome to Gold Gym">
+    <div class="splash-bg" id="splash-bg"></div>
+    <div class="splash-smoke"></div>
+    <div class="splash-vignette"></div>
+
+    <div class="splash-content">
+      <!-- Top Club Status Badge -->
+      <div class="splash-top-bar">
+        <div class="splash-club-badge">
+          <span class="splash-live-pulse"></span>
+          <span>EST. 2024 &bull; LUXURY FITNESS</span>
+        </div>
+      </div>
+
+      <!-- Center Floating Hero Branding (Zero Box Cuts) -->
+      <div class="splash-hero">
+        <div class="splash-emblem-wrap">
+          <div class="splash-emblem">
+            <svg class="splash-emblem-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6.5 6.5h11M6.5 17.5h11M3 10v4M21 10v4M4.5 8.5v7M19.5 8.5v7M8 4.5v15M16 4.5v15" />
+            </svg>
+          </div>
+        </div>
+        <h1 class="splash-title">GOLD GYM</h1>
+        <div class="splash-subtitle">FEE MANAGEMENT SYSTEM</div>
+        <div class="splash-divider">
+          <span class="splash-divider-line"></span>
+          <span class="splash-divider-diamond">&#9670;</span>
+          <span class="splash-divider-line"></span>
+        </div>
+        <p class="splash-tagline">DISCIPLINE &bull; REPUTATION &bull; EXCELLENCE</p>
+      </div>
+
+      <!-- Bottom Swipe Area (iPhone Lock Screen Style) -->
+      <div class="splash-swipe-container" id="splash-swipe-area" role="button" tabindex="0" aria-label="Swipe up to enter">
+        <div class="splash-swipe-prompt">
+          <div class="splash-chevron-bounce">
+            <i class="fa-solid fa-chevron-up splash-chevron-icon" aria-hidden="true"></i>
+            <svg class="splash-chevron-fallback" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+          </div>
+          <span class="splash-swipe-label">SWIPE UP TO ENTER</span>
+        </div>
+        <div class="splash-swipe-bar-wrap" id="splash-swipe-bar">
+          <div class="splash-swipe-pill"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ============================================================
      SIDEBAR OVERLAY (mobile)
@@ -135,11 +190,13 @@
           </span>
           <span id="theme-label">Dark Mode</span>
         </button>
-        <button class="theme-btn" onclick="resetGymData()" aria-label="Reset Demo Data"
-          style="background:transparent;border-color:var(--border);font-size:0.75rem;padding:6px 12px;opacity:0.8"
-          title="Restore default sample records">
-          <span class="theme-icon">🔄</span>
-          <span>Reset Sample Data</span>
+        <button class="theme-btn" id="btn-lock-dashboard" onclick="showSplashScreen()" aria-label="Lock Dashboard"
+          style="background:transparent;border-color:var(--border);font-size:0.75rem;padding:6px 12px;opacity:0.85"
+          title="Lock Dashboard">
+          <span class="theme-icon" style="color:var(--gold)">
+            <i class="fa-solid fa-lock" style="font-size:0.95rem;"></i>
+          </span>
+          <span>Lock Dashboard</span>
         </button>
       </div>
     </aside>
@@ -255,10 +312,10 @@
             <button class="btn btn-outline btn-sm" onclick="navigateTo('members')">View All Members →</button>
           </div>
           <div class="table-wrap">
-            <table aria-label="Defaulters table">
+            <table aria-label="Defaulters table" id="defaulters-table">
               <thead>
                 <tr>
-                  <th>Member</th>
+                  <th class="sticky-col">Member</th>
                   <th>Phone</th>
                   <th>Monthly Fee</th>
                   <th>Status</th>
@@ -307,9 +364,9 @@
           </div>
         </div>
 
-        <div
-          style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap">
-          <div class="search-wrap" style="width:100%;max-width:320px;">
+        <!-- Modern Members Directory Filter & Search Toolbar -->
+        <div class="members-toolbar">
+          <div class="search-wrap members-search-wrap">
             <svg class="search-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
@@ -318,44 +375,83 @@
             <input type="search" id="members-search" class="search-input" placeholder="Search members by name or phone…"
               aria-label="Search members" autocomplete="off" />
           </div>
+
+          <div class="filter-dropdowns" role="region" aria-label="Member filters">
+            <!-- Gender Filter -->
+            <div class="filter-group">
+              <label for="filter-gender" class="filter-label-sr">Gender Filter</label>
+              <select id="filter-gender" class="filter-select" aria-label="Gender Filter">
+                <option value="all">All Genders</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+
+            <!-- Fee Status Filter -->
+            <div class="filter-group">
+              <label for="filter-fee-status" class="filter-label-sr">Fee Status Filter</label>
+              <select id="filter-fee-status" class="filter-select" aria-label="Fee Status Filter">
+                <option value="all">All Fee Status</option>
+                <option value="paid">Paid</option>
+                <option value="unpaid">Unpaid</option>
+              </select>
+            </div>
+
+            <!-- Member Status Filter -->
+            <div class="filter-group">
+              <label for="filter-member-status" class="filter-label-sr">Member Status Filter</label>
+              <select id="filter-member-status" class="filter-select" aria-label="Member Status Filter">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <!-- Reset Filters Button -->
+            <button type="button" id="btn-reset-filters" class="btn-reset-filters" title="Reset all filters" aria-label="Reset all filters" style="display:none">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              <span>Reset</span>
+            </button>
+          </div>
         </div>
 
-        <div class="filter-tabs" style="margin-bottom:20px" role="tablist" aria-label="Member filters">
-          <button class="filter-tab active" data-filter="all" role="tab">All Members <span id="tab-count-all"
-              class="tab-count-badge tab-count-all">0</span></button>
-          <button class="filter-tab" data-filter="male" role="tab">Male <span id="tab-count-male"
-              class="tab-count-badge tab-count-male">0</span></button>
-          <button class="filter-tab" data-filter="female" role="tab">Female <span id="tab-count-female"
-              class="tab-count-badge tab-count-female">0</span></button>
-          <button class="filter-tab" data-filter="active" role="tab">Active <span id="tab-count-active"
-              class="tab-count-badge tab-count-active">0</span></button>
-          <button class="filter-tab" data-filter="paid" role="tab">Paid <span id="tab-count-paid"
-              class="tab-count-badge tab-count-paid">0</span></button>
-          <button class="filter-tab" data-filter="unpaid" role="tab">Unpaid <span id="tab-count-unpaid"
-              class="tab-count-badge tab-count-unpaid">0</span></button>
-          <button class="filter-tab" data-filter="inactive" role="tab">Inactive <span id="tab-count-inactive"
-              class="tab-count-badge tab-count-inactive">0</span></button>
+        <!-- Filter Count & Active Chips Bar -->
+        <div class="filter-feedback-bar">
+          <div class="filter-feedback-count">
+            Showing <strong id="members-filtered-count">0</strong> of <span id="members-total-count">0</span> members
+          </div>
+          <div class="active-filter-chips" id="active-filter-chips"></div>
         </div>
 
         <div class="card">
           <div class="table-wrap">
-            <table aria-label="Members table">
+            <table aria-label="Members table" id="members-table">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Member</th>
+                  <th class="col-num">#</th>
+                  <th class="col-member sticky-col">Member</th>
                   <th>Gender</th>
                   <th>Phone</th>
                   <th>Joining Date</th>
                   <th>Monthly Fee</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th style="min-width:180px">Actions</th>
                 </tr>
               </thead>
               <tbody id="members-tbody"></tbody>
             </table>
             <div id="members-empty" class="empty-state" style="display:none">
-              <div class="empty-icon">👥</div>
+              <div class="empty-icon">
+                <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
               <div class="empty-title">No Members Found</div>
               <div class="empty-sub">Try a different search or filter, or add a new member.</div>
             </div>
@@ -381,14 +477,25 @@
             <select class="select-input" id="ledger-year" aria-label="Filter by year">
               <option value="">All Years</option>
             </select>
-            <button class="btn btn-outline btn-sm" id="btn-export-ledger">📥 Export CSV</button>
+            <button class="btn btn-outline btn-sm" id="btn-export-ledger">
+              <svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;margin-right:4px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>Export CSV
+            </button>
           </div>
         </div>
 
         <!-- Revenue Banner -->
         <div class="revenue-banner" role="region" aria-label="Revenue summary">
           <div style="display:flex;align-items:center;gap:20px;">
-            <div class="revenue-banner-icon" aria-hidden="true">💰</div>
+            <div class="revenue-banner-icon" aria-hidden="true">
+              <svg class="svg-icon svg-icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
             <div class="revenue-text">
               <h2 id="revenue-label">Selected Period</h2>
               <p id="revenue-total">PKR 0</p>
